@@ -1,11 +1,12 @@
 import { ResultsDisplay } from "@/components/results-display"
 import EvaluationProgress from "@/components/evaluation-progress"
 import { getEvaluationById } from "@/lib/db"
+import { InvalidLinkNotice } from "@/components/invalid-link-notice"
 
-export default async function EvaluationPage({ 
+export default async function EvaluationPage({
     params,
-    searchParams 
-}: { 
+    searchParams
+}: {
     params: Promise<{ jobId?: string }>
     searchParams?: Promise<{ embed?: string }>
 }) {
@@ -17,17 +18,7 @@ export default async function EvaluationPage({
     console.log("Loading evaluation page for id:", id, "isEmbed:", isEmbed)
 
     if (!id) {
-        return (
-            <main className="min-h-screen bg-background py-12">
-                <div className="container mx-auto max-w-2xl">
-                    <div className="bg-yellow-50 border border-yellow-200 rounded p-6">
-                        <h2 className="text-xl font-bold mb-2">Invalid link</h2>
-                        <p className="mb-1">We couldn&apos;t find an evaluation for the provided link.</p>
-                        <p className="text-sm text-muted-foreground">Ensure you are using a valid report URL.</p>
-                    </div>
-                </div>
-            </main>
-        )
+        return <InvalidLinkNotice />
     }
 
     // First, try to load from MongoDB as an evaluation

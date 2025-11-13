@@ -4,7 +4,7 @@ import { useLanguage } from "@/hooks/use-language"
 
 export function Header() {
     const { t } = useLanguage()
-    
+
     return (
         <header className="bg-linear-to-r from-white to-blue-50 border-b border-blue-100 py-8 px-4 shadow-sm">
             <div className="container mx-auto max-w-6xl">

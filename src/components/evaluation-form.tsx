@@ -72,7 +72,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
         const incoming = Array.from(files)
 
         if (currentCount + incoming.length > MAX_FILES) {
-            setErrors({ ...errors, documents: `You can upload up to ${MAX_FILES} files.` })
+            setErrors({ ...errors, documents: t("form.uploadLimit").replace("{n}", String(MAX_FILES)) })
             return
         }
 
@@ -80,12 +80,12 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
 
         for (const file of incoming) {
             if (!ACCEPTED_MIMES.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|jpg|jpeg|png|webp)$/i)) {
-                setErrors({ ...errors, documents: "One or more files have unsupported formats. Allowed: PDF, DOC, DOCX, JPG, PNG, WEBP." })
+                setErrors({ ...errors, documents: t("form.unsupportedFormats") })
                 continue
             }
 
             if (file.size > 10 * 1024 * 1024) {
-                setErrors({ ...errors, documents: "File too large. Max size is 10MB per file." })
+                setErrors({ ...errors, documents: t("form.fileTooLarge") })
                 continue
             }
 
@@ -149,10 +149,10 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
             <Card className="p-6 border-0 shadow-md">
-                    <h2 className="text-2xl font-bold mb-4 text-primary">{t("home.form.title")}</h2>
+                <h2 className="text-2xl font-bold mb-4 text-primary">{t("home.form.title")}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                            <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.name")}</label>
+                        <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.name")}</label>
                         <Input
                             type="text"
                             value={formData.name}
@@ -163,7 +163,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                         {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
                     </div>
                     <div>
-                            <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.email")}</label>
+                        <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.email")}</label>
                         <Input
                             type="email"
                             value={formData.email}
@@ -181,14 +181,14 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                 <h2 className="text-2xl font-bold mb-4 text-primary">Visa Selection</h2>
                 <div className="space-y-4">
                     <div>
-                            <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.country")}</label>
+                        <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.country")}</label>
                         <select
                             value={formData.country}
                             onChange={(e) => handleCountryChange(e.target.value)}
                             className={`w-full px-4 py-2 border-2 rounded-lg transition-colors ${errors.country ? "border-destructive" : "border-gray-200 focus:border-primary"
                                 }`}
                         >
-                               <option value="">{t("form.selectCountry")}</option>
+                            <option value="">{t("form.selectCountry")}</option>
                             {Object.entries(VISA_CONFIG).map(([key, value]) => (
                                 <option key={key} value={key}>
                                     {value.name}
@@ -201,14 +201,14 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                     {selectedCountryConfig && (
                         <>
                             <div>
-                                  <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.visaType")}</label>
+                                <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.visaType")}</label>
                                 <select
                                     value={formData.visaType}
                                     onChange={(e) => setFormData({ ...formData, visaType: e.target.value })}
                                     className={`w-full px-4 py-2 border-2 rounded-lg transition-colors ${errors.visaType ? "border-destructive" : "border-gray-200 focus:border-primary"
                                         }`}
                                 >
-                                     <option value="">{t("form.selectVisaType")}</option>
+                                    <option value="">{t("form.selectVisaType")}</option>
                                     {Object.entries(selectedCountryConfig.visas).map(([key, visa]: [string, any]) => (
                                         <option key={key} value={key}>
                                             {visa.displayName}
@@ -222,19 +222,19 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <div>
-                                            <p className="text-xs text-muted-foreground font-semibold">Processing Time</p>
+                                            <p className="text-xs text-muted-foreground font-semibold">{t("form.processingTime")}</p>
                                             <p className="text-sm font-bold text-primary">{selectedVisa.processingTime}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground font-semibold">Success Rate</p>
+                                            <p className="text-xs text-muted-foreground font-semibold">{t("form.successRate")}</p>
                                             <p className="text-sm font-bold text-primary">{selectedVisa.successRate}%</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground font-semibold">Required Docs</p>
+                                            <p className="text-xs text-muted-foreground font-semibold">{t("form.requiredDocs")}</p>
                                             <p className="text-sm font-bold text-primary">{requiredDocs.length}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground font-semibold">Optional Docs</p>
+                                            <p className="text-xs text-muted-foreground font-semibold">{t("form.optionalDocs")}</p>
                                             <p className="text-sm font-bold text-primary">{optionalDocs.length}</p>
                                         </div>
                                     </div>
@@ -255,7 +255,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                         <div className="mb-8">
                             <div className="flex items-center gap-2 mb-4">
                                 <AlertCircle className="w-5 h-5 text-red-500" />
-                                    <h3 className="text-lg font-bold text-foreground">{t("form.required")} Documents</h3>
+                                <h3 className="text-lg font-bold text-foreground">{t("form.required")} {t("form.uploadDocuments")}</h3>
                                 <span className="text-sm text-muted-foreground">
                                     ({uploadedRequired.length}/{requiredDocs.length})
                                 </span>
@@ -274,7 +274,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                                     >
                                         <Upload className="w-6 h-6 mx-auto mb-2 text-gray-400" />
                                         <p className="text-sm font-semibold text-foreground">{doc}</p>
-                                            <p className="text-xs text-muted-foreground">{t("form.dragDrop")}</p>
+                                        <p className="text-xs text-muted-foreground">{t("form.dragDrop")}</p>
                                         <input
                                             type="file"
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFileUpload(e.target.files, "required", doc)}
@@ -289,7 +289,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                             {/* Uploaded Required Documents */}
                             {uploadedRequired.length > 0 && (
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                                    <p className="text-sm font-semibold text-green-700 mb-2">Uploaded:</p>
+                                    <p className="text-sm font-semibold text-green-700 mb-2">{t("form.uploadedLabel")}</p>
                                     <div className="space-y-2">
                                         {uploadedRequired.map((doc) => (
                                             <div key={doc.id} className="flex items-center justify-between">
@@ -317,7 +317,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <CheckCircle className="w-5 h-5 text-blue-500" />
-                                    <h3 className="text-lg font-bold text-foreground">{t("form.optional")} Documents</h3>
+                                <h3 className="text-lg font-bold text-foreground">{t("form.optional")} {t("form.uploadDocuments")}</h3>
                                 <span className="text-sm text-muted-foreground">
                                     ({uploadedOptional.length}/{optionalDocs.length})
                                 </span>
@@ -351,7 +351,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                             {/* Uploaded Optional Documents */}
                             {uploadedOptional.length > 0 && (
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <p className="text-sm font-semibold text-blue-700 mb-2">Uploaded:</p>
+                                    <p className="text-sm font-semibold text-blue-700 mb-2">{t("form.uploadedLabel")}</p>
                                     <div className="space-y-2">
                                         {uploadedOptional.map((doc) => (
                                             <div key={doc.id} className="flex items-center justify-between">
@@ -383,7 +383,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                 disabled={isLoading}
                 className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 text-base"
             >
-                    {isLoading ? t("form.submitting") : t("form.submitEvaluation")}
+                {isLoading ? t("form.submitting") : t("form.submitEvaluation")}
             </Button>
         </form>
     )

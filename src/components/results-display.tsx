@@ -6,6 +6,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ApiKeyModal } from "@/components/api-key-modal"
 import { useLanguage } from "@/hooks/use-language"
+// import { translateText, shouldTranslateContent } from "@/lib/translate" // Uncomment when translation API is configured
 
 interface ResultsProps {
     results: {
@@ -122,6 +123,8 @@ export function ResultsDisplay({ results, showEmbedPreview = true }: ResultsProp
                 <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
                     <span className="text-blue-600">📋</span> {t("results.summary")}
                 </h3>
+                {/* Note: Dynamic content (summary, strengths, improvements, etc.) can be translated
+                    using the translateText utility when a translation API is configured */}
                 <p className="text-gray-700 leading-relaxed">{results.summary}</p>
                 {results.timeline && (
                     <div className="mt-4 p-3 bg-blue-50 rounded-lg">
@@ -195,18 +198,18 @@ export function ResultsDisplay({ results, showEmbedPreview = true }: ResultsProp
             <Card className="p-4 bg-white border-gray-300">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
                     <p className="text-gray-900">
-                        Evaluation ID: <span className="font-mono font-semibold text-blue-600">{results.id}</span>
+                        {t("results.evaluationIdLabel")} <span className="font-mono font-semibold text-blue-600">{results.id}</span>
                     </p>
                     <p className="text-gray-600 text-xs">
-                        📧 A copy of this report has been sent to your email
+                        📧 {t("results.emailCopyNotice")}
                     </p>
                 </div>
             </Card>
 
             {/* Disclaimer */}
             <div className="text-center text-xs text-gray-500 pt-4 border-t">
-                <p>This is an automated evaluation for informational purposes only.</p>
-                <p>For official immigration advice, please consult with a licensed immigration professional.</p>
+                <p>{t("results.disclaimer1")}</p>
+                <p>{t("results.disclaimer2")}</p>
             </div>
 
             {/* Iframe Preview */}

@@ -6,14 +6,14 @@ import { EvaluationForm } from "@/components/evaluation-form"
 import { ResultsDisplay } from "@/components/results-display"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Shield, TrendingUp, FileCheck, Globe } from "lucide-react"
-import { useLanguage } from "@/hooks/use-language" 
+import { useLanguage } from "@/hooks/use-language"
 
 export default function Home() {
   const [results, setResults] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const formRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const { t } = useLanguage() 
+  const { t } = useLanguage()
 
   const handleSubmitEvaluation = async (formData: any) => {
     setIsLoading(true)
@@ -52,7 +52,7 @@ export default function Home() {
 
       if (response.status === 422 && data?.error === "invalid_documents") {
         // Agent found faulty documents. Notify user to reupload.
-        alert("One or more documents appear to be faulty or unclear. Please re-upload the indicated documents and try again.")
+        alert(t("evaluation.invalidDocumentsAlert"))
         setIsLoading(false)
         return
       }
@@ -65,7 +65,7 @@ export default function Home() {
           setIsLoading(false)
           return
         }
-        alert("Failed to start evaluation job")
+        alert(t("evaluation.failedStart"))
         setIsLoading(false)
         return
       }

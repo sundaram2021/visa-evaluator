@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Copy, Check } from "lucide-react"
+import { useLanguage } from "@/hooks/use-language"
 
 interface ApiKeyModalProps {
     open: boolean
@@ -19,6 +20,7 @@ interface ApiKeyModalProps {
 }
 
 export function ApiKeyModal({ open, onOpenChange, jobId }: ApiKeyModalProps) {
+    const { t } = useLanguage()
     const [apiKey, setApiKey] = useState<string>("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string>("")
@@ -42,7 +44,7 @@ export function ApiKeyModal({ open, onOpenChange, jobId }: ApiKeyModalProps) {
             const data = await response.json()
             setApiKey(data.apiKey)
         } catch (err) {
-            setError("Failed to generate API key. Please try again.")
+            setError(t("api.failed"))
             console.error(err)
         } finally {
             setLoading(false)
@@ -77,16 +79,16 @@ export function ApiKeyModal({ open, onOpenChange, jobId }: ApiKeyModalProps) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle>API Key for Evaluation</DialogTitle>
+                    <DialogTitle>{t("api.title")}</DialogTitle>
                     <DialogDescription>
-                        Use this API key to access the evaluation data programmatically.
+                        {t("api.description")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
                     {loading && (
                         <div className="text-center py-4">
-                            <p className="text-muted-foreground">Generating API key...</p>
+                            <p className="text-muted-foreground">{t("api.generating")}</p>
                         </div>
                     )}
 
@@ -99,7 +101,7 @@ export function ApiKeyModal({ open, onOpenChange, jobId }: ApiKeyModalProps) {
                                 className="mt-2"
                                 size="sm"
                             >
-                                Retry
+                                {t("api.retry")}
                             </Button>
                         </div>
                     )}
@@ -107,7 +109,7 @@ export function ApiKeyModal({ open, onOpenChange, jobId }: ApiKeyModalProps) {
                     {apiKey && (
                         <>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Your API Key</label>
+                                <label className="text-sm font-medium">{t("api.yourKey")}</label>
                                 <div className="flex gap-2">
                                     <Input
                                         value={apiKey}
@@ -127,12 +129,12 @@ export function ApiKeyModal({ open, onOpenChange, jobId }: ApiKeyModalProps) {
                                     </Button>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    Keep this key secure. It provides access to your evaluation data.
+                                    {t("api.keepSecure")}
                                 </p>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Example cURL Command</label>
+                                <label className="text-sm font-medium">{t("api.curlLabel")}</label>
                                 <div className="flex gap-2">
                                     <Input
                                         value={curlCommand}
@@ -152,12 +154,12 @@ export function ApiKeyModal({ open, onOpenChange, jobId }: ApiKeyModalProps) {
                                     </Button>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    Use this command to fetch your evaluation data via the API.
+                                    {t("api.curlHelp")}
                                 </p>
                             </div>
 
                             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                                <h4 className="text-sm font-semibold mb-2">API Endpoint</h4>
+                                <h4 className="text-sm font-semibold mb-2">{t("api.endpoint")}</h4>
                                 <code className="text-xs block bg-white p-2 rounded border">
                                     GET /api/partner?apiKey=YOUR_API_KEY
                                 </code>
@@ -167,7 +169,7 @@ export function ApiKeyModal({ open, onOpenChange, jobId }: ApiKeyModalProps) {
                 </div>
 
                 <div className="flex justify-end">
-                    <Button onClick={() => onOpenChange(false)}>Close</Button>
+                    <Button onClick={() => onOpenChange(false)}>{t("api.close")}</Button>
                 </div>
             </DialogContent>
         </Dialog>

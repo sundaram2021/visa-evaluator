@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useLanguage } from "@/hooks/use-language"
 
 interface Step {
     id: number
@@ -14,32 +15,13 @@ interface Event {
 }
 
 export function EvaluationTimeline({ running, events = [] }: { running: boolean; events?: Event[] }) {
+    const { t } = useLanguage()
     const steps: Step[] = [
-        {
-            id: 1,
-            text: "Receiving documents",
-            description: "Uploading and processing your files..."
-        },
-        {
-            id: 2,
-            text: "Validating document format & clarity",
-            description: "Checking document quality and readability..."
-        },
-        {
-            id: 3,
-            text: "Running document verification with agent",
-            description: "AI agent analyzing document contents..."
-        },
-        {
-            id: 4,
-            text: "Computing visa eligibility score",
-            description: "Calculating your eligibility metrics..."
-        },
-        {
-            id: 5,
-            text: "Generating report & sending email",
-            description: "Finalizing your results..."
-        },
+        { id: 1, text: t("evaluation.steps.s1.title"), description: t("evaluation.steps.s1.desc") },
+        { id: 2, text: t("evaluation.steps.s2.title"), description: t("evaluation.steps.s2.desc") },
+        { id: 3, text: t("evaluation.steps.s3.title"), description: t("evaluation.steps.s3.desc") },
+        { id: 4, text: t("evaluation.steps.s4.title"), description: t("evaluation.steps.s4.desc") },
+        { id: 5, text: t("evaluation.steps.s5.title"), description: t("evaluation.steps.s5.desc") },
     ]
 
     const [active, setActive] = useState(0)
@@ -127,8 +109,8 @@ export function EvaluationTimeline({ running, events = [] }: { running: boolean;
     return (
         <div className="w-full max-w-4xl mx-auto p-6 bg-linear-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg">
             <div className="mb-6">
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">AI Evaluation in Progress</h3>
-                <p className="text-slate-600 text-sm">Processing your visa application documents...</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">{t("evaluation.timelineTitle")}</h3>
+                <p className="text-slate-600 text-sm">{t("evaluation.timelineSubtitle")}</p>
             </div>
 
             <div className="space-y-4">
@@ -142,10 +124,10 @@ export function EvaluationTimeline({ running, events = [] }: { running: boolean;
                         <div
                             key={step.id}
                             className={`relative rounded-lg border-2 transition-all duration-500 ${status === "active"
-                                    ? "bg-white border-blue-500 shadow-lg scale-[1.02]"
-                                    : status === "completed"
-                                        ? "bg-white border-green-500"
-                                        : "bg-white/50 border-slate-200"
+                                ? "bg-white border-blue-500 shadow-lg scale-[1.02]"
+                                : status === "completed"
+                                    ? "bg-white border-green-500"
+                                    : "bg-white/50 border-slate-200"
                                 }`}
                         >
                             <div className="p-4">
@@ -154,10 +136,10 @@ export function EvaluationTimeline({ running, events = [] }: { running: boolean;
                                     <div className="shrink-0">
                                         <div
                                             className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${status === "completed"
-                                                    ? "bg-green-500 text-white"
-                                                    : status === "active"
-                                                        ? "bg-blue-500 text-white animate-pulse"
-                                                        : "bg-slate-200 text-slate-500"
+                                                ? "bg-green-500 text-white"
+                                                : status === "active"
+                                                    ? "bg-blue-500 text-white animate-pulse"
+                                                    : "bg-slate-200 text-slate-500"
                                                 }`}
                                         >
                                             {status === "completed" ? (
@@ -182,11 +164,11 @@ export function EvaluationTimeline({ running, events = [] }: { running: boolean;
                                             {status === "active" && (
                                                 <span className="flex items-center gap-1 text-xs text-blue-600 font-medium">
                                                     <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
-                                                    Processing
+                                                    {t("evaluation.processing")}
                                                 </span>
                                             )}
                                             {status === "completed" && (
-                                                <span className="text-xs text-green-600 font-medium">Completed</span>
+                                                <span className="text-xs text-green-600 font-medium">{t("evaluation.completed")}</span>
                                             )}
                                         </div>
 
@@ -198,10 +180,10 @@ export function EvaluationTimeline({ running, events = [] }: { running: boolean;
                                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full transition-all duration-700 ease-out ${status === "completed"
-                                                        ? "bg-green-500 w-full"
-                                                        : status === "active"
-                                                            ? "bg-blue-500 w-3/4 animate-pulse"
-                                                            : "bg-slate-200 w-0"
+                                                    ? "bg-green-500 w-full"
+                                                    : status === "active"
+                                                        ? "bg-blue-500 w-3/4 animate-pulse"
+                                                        : "bg-slate-200 w-0"
                                                     }`}
                                             />
                                         </div>
@@ -233,7 +215,7 @@ export function EvaluationTimeline({ running, events = [] }: { running: boolean;
             {/* Overall Progress */}
             <div className="mt-6 pt-4 border-t border-slate-200">
                 <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-600 font-medium">Overall Progress</span>
+                    <span className="text-slate-600 font-medium">{t("evaluation.overallProgress")}</span>
                     <span className="text-slate-800 font-bold">{Math.round((active / steps.length) * 100)}%</span>
                 </div>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden mt-2">
