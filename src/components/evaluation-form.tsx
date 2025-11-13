@@ -7,6 +7,7 @@ import { Card } from "./ui/card"
 import { Input } from "./ui/input"
 import { VISA_CONFIG } from "@/lib/config"
 import { Upload, X, CheckCircle, AlertCircle } from "lucide-react"
+import { useLanguage } from "@/hooks/use-language"
 
 interface EvaluationFormProps {
     onSubmit: (formData: any) => void
@@ -14,6 +15,7 @@ interface EvaluationFormProps {
 }
 
 export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
+    const { t } = useLanguage()
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -22,18 +24,18 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
     })
 
     const [uploadedDocuments, setUploadedDocuments] = useState<
-        { id: string; name: string; fileName: string; type: "required" | "optional" }[]
+        { id: string; name: string; fileName: string; type: "required" | "optional"; file?: File }[]
     >([])
     const [errors, setErrors] = useState<{ [key: string]: string }>({})
     const [dragActive, setDragActive] = useState(false)
 
     const validateForm = () => {
         const newErrors: { [key: string]: string } = {}
-        if (!formData.name.trim()) newErrors.name = "Name is required"
-        if (!formData.email.trim()) newErrors.email = "Email is required"
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Invalid email format"
-        if (!formData.country) newErrors.country = "Country is required"
-        if (!formData.visaType) newErrors.visaType = "Visa type is required"
+        if (!formData.name.trim()) newErrors.name = t("form.nameRequired")
+        if (!formData.email.trim()) newErrors.email = t("form.emailRequired")
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t("form.emailInvalid")
+        if (!formData.country) newErrors.country = t("form.countryRequired")
+        if (!formData.visaType) newErrors.visaType = t("form.visaTypeRequired")
 
         // Check required documents
         const visaConfig = VISA_CONFIG[formData.country as keyof typeof VISA_CONFIG]
@@ -42,7 +44,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
         const uploadedRequired = uploadedDocuments.filter((d) => d.type === "required").length
 
         if (uploadedRequired === 0 && requiredCount > 0) {
-            newErrors.documents = "Upload at least one required document"
+            newErrors.documents = t("form.documentsRequired")
         }
 
         setErrors(newErrors)
@@ -53,17 +55,55 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
         setFormData({ ...formData, country, visaType: "" })
     }
 
+    const MAX_FILES = 6
+    const ACCEPTED_MIMES = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+    ]
+
     const handleFileUpload = (files: FileList | null, docType: "required" | "optional", docName?: string) => {
         if (!files) return
 
-        const newDocs = Array.from(files).map((file) => ({
-            id: Math.random().toString(36).substr(2, 9),
-            name: docName || file.name.split(".")[0],
-            fileName: file.name,
-            type: docType,
-        }))
+        const currentCount = uploadedDocuments.length
+        const incoming = Array.from(files)
 
-        setUploadedDocuments([...uploadedDocuments, ...newDocs])
+        if (currentCount + incoming.length > MAX_FILES) {
+            setErrors({ ...errors, documents: `You can upload up to ${MAX_FILES} files.` })
+            return
+        }
+
+        const newDocs: typeof uploadedDocuments = []
+
+        for (const file of incoming) {
+            if (!ACCEPTED_MIMES.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|jpg|jpeg|png|webp)$/i)) {
+                setErrors({ ...errors, documents: "One or more files have unsupported formats. Allowed: PDF, DOC, DOCX, JPG, PNG, WEBP." })
+                continue
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                setErrors({ ...errors, documents: "File too large. Max size is 10MB per file." })
+                continue
+            }
+
+            newDocs.push({
+                id: Math.random().toString(36).substr(2, 9),
+                name: docName || file.name.split(".")[0],
+                fileName: file.name,
+                type: docType,
+                file,
+            })
+        }
+
+        setUploadedDocuments((prev) => [...prev, ...newDocs])
+        setErrors((prev) => {
+            const copy = { ...prev }
+            delete copy.documents
+            return copy
+        })
     }
 
     const handleDrag = (e: React.DragEvent) => {
@@ -109,10 +149,10 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
             <Card className="p-6 border-0 shadow-md">
-                <h2 className="text-2xl font-bold mb-4 text-primary">Personal Information</h2>
+                    <h2 className="text-2xl font-bold mb-4 text-primary">{t("home.form.title")}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-semibold mb-2 text-foreground">Full Name</label>
+                            <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.name")}</label>
                         <Input
                             type="text"
                             value={formData.name}
@@ -123,7 +163,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                         {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
                     </div>
                     <div>
-                        <label className="block text-sm font-semibold mb-2 text-foreground">Email Address</label>
+                            <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.email")}</label>
                         <Input
                             type="email"
                             value={formData.email}
@@ -141,14 +181,14 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                 <h2 className="text-2xl font-bold mb-4 text-primary">Visa Selection</h2>
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-semibold mb-2 text-foreground">Country</label>
+                            <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.country")}</label>
                         <select
                             value={formData.country}
                             onChange={(e) => handleCountryChange(e.target.value)}
                             className={`w-full px-4 py-2 border-2 rounded-lg transition-colors ${errors.country ? "border-destructive" : "border-gray-200 focus:border-primary"
                                 }`}
                         >
-                            <option value="">Select a country</option>
+                               <option value="">{t("form.selectCountry")}</option>
                             {Object.entries(VISA_CONFIG).map(([key, value]) => (
                                 <option key={key} value={key}>
                                     {value.name}
@@ -161,14 +201,14 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                     {selectedCountryConfig && (
                         <>
                             <div>
-                                <label className="block text-sm font-semibold mb-2 text-foreground">Visa Type</label>
+                                  <label className="block text-sm font-semibold mb-2 text-foreground">{t("form.visaType")}</label>
                                 <select
                                     value={formData.visaType}
                                     onChange={(e) => setFormData({ ...formData, visaType: e.target.value })}
                                     className={`w-full px-4 py-2 border-2 rounded-lg transition-colors ${errors.visaType ? "border-destructive" : "border-gray-200 focus:border-primary"
                                         }`}
                                 >
-                                    <option value="">Select visa type</option>
+                                     <option value="">{t("form.selectVisaType")}</option>
                                     {Object.entries(selectedCountryConfig.visas).map(([key, visa]: [string, any]) => (
                                         <option key={key} value={key}>
                                             {visa.displayName}
@@ -208,14 +248,14 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
             {/* Document Upload */}
             {selectedVisa && (
                 <Card className="p-6 border-0 shadow-md">
-                    <h2 className="text-2xl font-bold mb-6 text-primary">Document Upload</h2>
+                    <h2 className="text-2xl font-bold mb-6 text-primary">{t("form.uploadDocuments")}</h2>
 
                     {/* Required Documents */}
                     {requiredDocs.length > 0 && (
                         <div className="mb-8">
                             <div className="flex items-center gap-2 mb-4">
                                 <AlertCircle className="w-5 h-5 text-red-500" />
-                                <h3 className="text-lg font-bold text-foreground">Required Documents</h3>
+                                    <h3 className="text-lg font-bold text-foreground">{t("form.required")} Documents</h3>
                                 <span className="text-sm text-muted-foreground">
                                     ({uploadedRequired.length}/{requiredDocs.length})
                                 </span>
@@ -229,12 +269,12 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                                         onDragLeave={handleDrag as (e: React.DragEvent<HTMLDivElement>) => void}
                                         onDragOver={handleDrag as (e: React.DragEvent<HTMLDivElement>) => void}
                                         onDrop={(e: React.DragEvent<HTMLDivElement>) => handleDrop(e, "required")}
-                                        className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${dragActive ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
+                                        className={`relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${dragActive ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
                                             }`}
                                     >
                                         <Upload className="w-6 h-6 mx-auto mb-2 text-gray-400" />
                                         <p className="text-sm font-semibold text-foreground">{doc}</p>
-                                        <p className="text-xs text-muted-foreground">Drag and drop or click to upload</p>
+                                            <p className="text-xs text-muted-foreground">{t("form.dragDrop")}</p>
                                         <input
                                             type="file"
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFileUpload(e.target.files, "required", doc)}
@@ -277,7 +317,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <CheckCircle className="w-5 h-5 text-blue-500" />
-                                <h3 className="text-lg font-bold text-foreground">Optional Documents</h3>
+                                    <h3 className="text-lg font-bold text-foreground">{t("form.optional")} Documents</h3>
                                 <span className="text-sm text-muted-foreground">
                                     ({uploadedOptional.length}/{optionalDocs.length})
                                 </span>
@@ -291,7 +331,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                                         onDragLeave={handleDrag as (e: React.DragEvent<HTMLDivElement>) => void}
                                         onDragOver={handleDrag as (e: React.DragEvent<HTMLDivElement>) => void}
                                         onDrop={(e: React.DragEvent<HTMLDivElement>) => handleDrop(e, "optional")}
-                                        className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${dragActive ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
+                                        className={`relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${dragActive ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
                                             }`}
                                     >
                                         <Upload className="w-6 h-6 mx-auto mb-2 text-gray-400" />
@@ -343,7 +383,7 @@ export function EvaluationForm({ onSubmit, isLoading }: EvaluationFormProps) {
                 disabled={isLoading}
                 className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 text-base"
             >
-                {isLoading ? "Evaluating..." : "Get Visa Evaluation"}
+                    {isLoading ? t("form.submitting") : t("form.submitEvaluation")}
             </Button>
         </form>
     )

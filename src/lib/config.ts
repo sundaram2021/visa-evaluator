@@ -16,6 +16,20 @@ export const VISA_CONFIG = {
         processingTime: "2-3 months",
         successRate: 68,
       },
+      "O-1A": {
+        displayName: "O-1A Extraordinary Ability (Individuals)",
+        requiredDocuments: ["Passport", "Evidence of Extraordinary Ability (awards/publications)", "Recommendation Letters", "Employment Offer/Contract"],
+        optionalDocuments: ["Press Clippings", "Professional Memberships", "Portfolio"],
+        processingTime: "2-4 months",
+        successRate: 60,
+      },
+      "O-1B": {
+        displayName: "O-1B Extraordinary Ability (Arts/Entertainment)",
+        requiredDocuments: ["Passport", "Evidence of Extraordinary Ability in Arts", "Recommendation Letters", "Employment Offer/Contract"],
+        optionalDocuments: ["Press Reviews", "Portfolio", "Awards"],
+        processingTime: "2-4 months",
+        successRate: 58,
+      },
       "F1 Student": {
         displayName: "F1 Student Visa",
         requiredDocuments: ["Passport", "I-20 Form", "Bank Statement", "Degree Certificate"],
@@ -416,6 +430,18 @@ export const VISA_CONFIG = {
         optionalDocuments: ["Accommodation Proof", "Employment Letter", "Police Clearance"],
         processingTime: "2-4 weeks",
         successRate: 85,
+      },
+    },
+  },
+  Test: {
+    name: "Test Country",
+    visas: {
+      "Resume-Only": {
+        displayName: "Resume Only (Test)",
+        requiredDocuments: ["Resume"],
+        optionalDocuments: [],
+        processingTime: "Instant",
+        successRate: 100,
       },
     },
   },

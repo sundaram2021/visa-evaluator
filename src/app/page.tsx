@@ -1,29 +1,77 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { EvaluationForm } from "@/components/evaluation-form"
 import { ResultsDisplay } from "@/components/results-display"
-// import { Header } from "@/components/header"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Shield, TrendingUp, FileCheck, Globe } from "lucide-react"
-import { useLanguage } from "@/hooks/use-language" // Import useLanguage hook
+import { useLanguage } from "@/hooks/use-language" 
 
 export default function Home() {
   const [results, setResults] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const formRef = useRef<HTMLDivElement>(null)
-  const { t } = useLanguage() // Use useLanguage hook
+  const router = useRouter()
+  const { t } = useLanguage() 
 
   const handleSubmitEvaluation = async (formData: any) => {
     setIsLoading(true)
     try {
+      try {
+        if (formData.name) localStorage.setItem("eva_name", formData.name)
+        if (formData.email) localStorage.setItem("eva_email", formData.email)
+      } catch (e) {
+        console.error(e)
+      }
+
+      const body = new FormData()
+      body.append("payload", JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        country: formData.country,
+        visaType: formData.visaType,
+        // include metadata for docs (name and type)
+        docsMeta: formData.uploadedDocuments.map((d: any) => ({ id: d.id, name: d.name, fileName: d.fileName, type: d.type }))
+      }))
+
+      // Attach files (only actual File objects) - ensure required docs are prioritized and limit to 6 files
+      const filesOrdered = [...formData.uploadedDocuments].sort((a: any, b: any) => (a.type === "required" && b.type !== "required" ? -1 : 1))
+      filesOrdered.slice(0, 6).forEach((d: any) => {
+        if (d.file) {
+          body.append("files", d.file, d.fileName)
+        }
+      })
+
       const response = await fetch("/api/evaluate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body,
       })
+
       const data = await response.json()
-      setResults(data)
+
+      if (response.status === 422 && data?.error === "invalid_documents") {
+        // Agent found faulty documents. Notify user to reupload.
+        alert("One or more documents appear to be faulty or unclear. Please re-upload the indicated documents and try again.")
+        setIsLoading(false)
+        return
+      }
+
+      const jobId = data?.jobId
+      if (!jobId) {
+        // Fallback: if server returned evaluation directly (older behavior), use it
+        if (data?.score) {
+          setResults(data)
+          setIsLoading(false)
+          return
+        }
+        alert("Failed to start evaluation job")
+        setIsLoading(false)
+        return
+      }
+
+      // navigate to the evaluation workflow page which will open the SSE and show timeline
+      router.push(`/evaluation/${encodeURIComponent(jobId)}`)
     } catch (error) {
       console.error("Error submitting evaluation:", error)
     } finally {
@@ -43,7 +91,7 @@ export default function Home() {
       {!results ? (
         <>
           {/* Hero Section */}
-          <section className="relative bg-gradient-to-br from-blue-50 to-white py-20 px-4 md:py-32">
+          <section className="relative bg-linear-to-br from-blue-50 to-white py-20 px-4 md:py-32">
             <div className="container mx-auto max-w-6xl text-center">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 mb-6">
@@ -102,7 +150,9 @@ export default function Home() {
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">{t("home.form.title")}</h2>
                 <p className="text-lg text-muted-foreground">{t("home.form.subtitle")}</p>
               </div>
-              <EvaluationForm onSubmit={handleSubmitEvaluation} isLoading={isLoading} />
+              <div className="grid grid-cols-1 gap-6">
+                <EvaluationForm onSubmit={handleSubmitEvaluation} isLoading={isLoading} />
+              </div>
             </div>
           </section>
         </>
@@ -122,3 +172,4 @@ export default function Home() {
     </main>
   )
 }
+// 

@@ -1,6 +1,7 @@
 import { VISA_CONFIG } from "./config"
+import { generateEvaluationWithAI } from "./result-agent"
 
-export function generateEvaluation(formData: {
+export async function generateEvaluation(formData: {
   country: string
   visaType: string
   uploadedDocuments: { name: string; type: "required" | "optional" }[]
@@ -14,19 +15,19 @@ export function generateEvaluation(formData: {
     return generateErrorEvaluation("Country not found")
   }
 
-  const selectedVisa = (visaConfig.visas as any)[formData.visaType]
+  const selectedVisa = (visaConfig.visas as Record<string, unknown>)[formData.visaType]
   if (!selectedVisa) {
     return generateErrorEvaluation("Visa type not found")
   }
 
   // Enhanced required documents scoring (0-40)
-  const requiredDocs = selectedVisa.requiredDocuments || []
+  const requiredDocs = (selectedVisa as Record<string, unknown>).requiredDocuments as string[] || []
   const uploadedRequired = formData.uploadedDocuments.filter((d) => d.type === "required")
   const requiredDocScore = requiredDocs.length > 0 ? (uploadedRequired.length / requiredDocs.length) * 40 : 40
   score += requiredDocScore
 
   // Enhanced optional documents bonus (0-25)
-  const optionalDocs = selectedVisa.optionalDocuments || []
+  const optionalDocs = (selectedVisa as Record<string, unknown>).optionalDocuments as string[] || []
   const uploadedOptional = formData.uploadedDocuments.filter((d) => d.type === "optional")
   const optionalDocScore =
     optionalDocs.length > 0 ? Math.min((uploadedOptional.length / optionalDocs.length) * 25, 25) : 0
@@ -42,24 +43,48 @@ export function generateEvaluation(formData: {
 
   score = Math.min(score, 85)
 
-  const { summary, strengths, improvements, recommendation } = generateSummary(
-    formData,
-    score,
-    requiredDocScore,
-    optionalDocScore,
-    visaScore,
-    requiredDocs,
-    uploadedRequired,
-    optionalDocs,
-    uploadedOptional,
-  )
+  // Use AI agent to generate comprehensive evaluation
+  try {
+    const aiResult = await generateEvaluationWithAI({
+      name: formData.name,
+      email: formData.email,
+      country: formData.country,
+      visaType: formData.visaType,
+      uploadedDocuments: formData.uploadedDocuments,
+      score: Math.round(score),
+    })
 
-  return {
-    score: Math.round(score),
-    summary,
-    strengths,
-    improvements,
-    recommendation,
+    return aiResult
+  } catch (error) {
+    console.error("AI evaluation failed, using fallback:", error)
+    // Fallback to basic evaluation
+    const { summary, strengths, improvements, recommendation } = generateSummary(
+      formData,
+      score,
+      requiredDocScore,
+      optionalDocScore,
+      visaScore,
+      requiredDocs,
+      uploadedRequired,
+      optionalDocs,
+      uploadedOptional,
+    )
+
+    return {
+      score: Math.round(score),
+      summary,
+      strengths,
+      improvements,
+      recommendation,
+      nextSteps: [
+        "Review the detailed report",
+        "Address areas for improvement",
+        "Prepare for potential interview",
+        "Monitor application status",
+      ],
+      timeline: "4-8 weeks",
+      additionalNotes: "This is an automated evaluation. For legal advice, consult with an immigration professional.",
+    }
   }
 }
 
@@ -192,6 +217,8 @@ function evaluateVisaType(visaType: string, visaConfig: any): number {
     "General Employment Permit": 15,
     "Family Visa": 17,
     "Family/Dependent Visa": 17,
+    "O-1A": 16,
+    "O-1B": 16,
   }
   return visaScoringMap[visaType] || 15
 }
