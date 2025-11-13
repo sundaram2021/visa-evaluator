@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from "react"
 
+// All translations with NO duplicate keys
 const translations = {
     en: {
         home: {
@@ -145,6 +146,10 @@ const translations = {
             additionalNotes: "Notas Adicionales",
             downloadFailed: "Error al descargar el informe",
             another: "Comenzar Otra Evaluación",
+            evaluationIdLabel: "ID de Evaluación:",
+            emailCopyNotice: "Se ha enviado una copia de este informe a tu correo electrónico",
+            disclaimer1: "Esta es una evaluación automatizada solo con fines informativos.",
+            disclaimer2: "Para asesoramiento oficial de inmigración, consulta con un profesional de inmigración licenciado.",
         },
         form: {
             name: "Nombre",
@@ -201,29 +206,6 @@ const translations = {
                 s5: { title: "Generando informe y enviando correo electrónico", desc: "Finalizando tus resultados..." },
             },
         },
-        results: {
-            title: "Informe de Evaluación de Visa",
-            downloadPdf: "Descargar PDF",
-            downloading: "Descargando...",
-            copyIframe: "Copiar Iframe",
-            copied: "¡Copiado!",
-            apiKey: "Clave API",
-            newEvaluation: "Nueva Evaluación",
-            score: "Puntuación de Evaluación",
-            summary: "Resumen",
-            strengths: "Fortalezas",
-            improvements: "Áreas de Mejora",
-            recommendation: "Recomendación",
-            nextSteps: "Próximos Pasos",
-            timeline: "Cronología",
-            additionalNotes: "Notas Adicionales",
-            downloadFailed: "Error al descargar el informe",
-            another: "Comenzar Otra Evaluación",
-            evaluationIdLabel: "ID de Evaluación:",
-            emailCopyNotice: "Se ha enviado una copia de este informe a tu correo electrónico",
-            disclaimer1: "Esta es una evaluación automatizada solo con fines informativos.",
-            disclaimer2: "Para asesoramiento oficial de inmigración, consulta con un profesional de inmigración licenciado.",
-        },
         api: {
             title: "Clave API para Evaluación",
             description: "Usa esta clave API para acceder a los datos de evaluación programáticamente.",
@@ -272,6 +254,10 @@ const translations = {
             additionalNotes: "Notes Supplémentaires",
             downloadFailed: "Échec du téléchargement du rapport",
             another: "Commencer une Autre Évaluation",
+            evaluationIdLabel: "ID d'Évaluation:",
+            emailCopyNotice: "Une copie de ce rapport a été envoyée à votre email",
+            disclaimer1: "Il s'agit d'une évaluation automatisée à des fins informatives uniquement.",
+            disclaimer2: "Pour des conseils officiels en matière d'immigration, veuillez consulter un professionnel de l'immigration agréé.",
         },
         form: {
             name: "Nom",
@@ -327,29 +313,6 @@ const translations = {
                 s4: { title: "Calcul du score d'admissibilité au visa", desc: "Calcul de vos métriques d'admissibilité..." },
                 s5: { title: "Génération du rapport et envoi de l'email", desc: "Finalisation de vos résultats..." },
             },
-        },
-        results: {
-            title: "Rapport d'Évaluation de Visa",
-            downloadPdf: "Télécharger PDF",
-            downloading: "Téléchargement...",
-            copyIframe: "Copier Iframe",
-            copied: "Copié!",
-            apiKey: "Clé API",
-            newEvaluation: "Nouvelle Évaluation",
-            score: "Score d'Évaluation",
-            summary: "Résumé",
-            strengths: "Forces",
-            improvements: "Axes d'Amélioration",
-            recommendation: "Recommandation",
-            nextSteps: "Prochaines Étapes",
-            timeline: "Chronologie",
-            additionalNotes: "Notes Supplémentaires",
-            downloadFailed: "Échec du téléchargement du rapport",
-            another: "Commencer une Autre Évaluation",
-            evaluationIdLabel: "ID d'Évaluation:",
-            emailCopyNotice: "Une copie de ce rapport a été envoyée à votre email",
-            disclaimer1: "Il s'agit d'une évaluation automatisée à des fins informatives uniquement.",
-            disclaimer2: "Pour des conseils officiels en matière d'immigration, veuillez consulter un professionnel de l'immigration agréé.",
         },
         api: {
             title: "Clé API pour l'Évaluation",
@@ -897,27 +860,28 @@ const translations = {
             close: "閉じる",
         },
     },
-}
+} as const
 
+// Type definitions
 type Language = keyof typeof translations
+
 type LanguageContextType = {
     language: Language
     setLanguage: (lang: Language) => void
     t: (key: string) => string
 }
 
+// Context
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
+// Provider
 export function LanguageProvider({ children }: { children: ReactNode }) {
-    // Initialize to 'en' by default. This is a client component so it's
-    // safe to read localStorage on initial render. Using the lazy
-    // initializer avoids calling setState inside an effect.
     const [language, setLanguageState] = useState<Language>(() => {
         try {
             const saved = localStorage.getItem("language") as Language | null
             if (saved && saved in translations) return saved
         } catch {
-            /* ignore (e.g. private mode) */
+            // ignore localStorage errors
         }
         return "en"
     })
@@ -931,7 +895,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
     const t = (key: string): string => {
         const keys = key.split(".")
-        // Try current language first
         let value: unknown = translations[language]
         for (const k of keys) {
             value = (value as Record<string, unknown> | undefined)?.[k]
@@ -946,12 +909,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         return typeof fallback === "string" ? fallback : key
     }
 
-    // Always provide the context so client consumers can call `useLanguage`
-    // during their initial render. The language value defaults to 'en'
-    // until the effect above updates it from localStorage.
-    return <LanguageContext.Provider value={{ language, setLanguage, t }}>{children}</LanguageContext.Provider>
+    return (
+        <LanguageContext.Provider value={{ language, setLanguage, t }}>
+            {children}
+        </LanguageContext.Provider>
+    )
 }
 
+// Hook
 export function useLanguage() {
     const context = useContext(LanguageContext)
     if (!context) {
